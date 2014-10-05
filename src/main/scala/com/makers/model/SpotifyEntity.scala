@@ -4,8 +4,10 @@ import scala.collection.JavaConverters._
 
 import com.makers.util._
 
-import com.wrapper.spotify.models.{Page, SimpleAlbum, SimpleArtist, SimplePlaylist, Track, User => SUser}
+import com.wrapper.spotify.models.{Artist => SArtist, Page, SimpleAlbum, SimpleArtist, SimplePlaylist, Track, User => SUser}
 import com.wrapper.spotify.methods.UserPlaylistsRequest
+
+import com.echonest.api.v4.{Artist => ENArtist}
 
 import scalaz._
 import Scalaz._
@@ -33,9 +35,9 @@ case class Playlist(
   val songs: List[Song]
 ) extends SpotifyEntity with Jsonable {
 
-  def songCount() = songs.map(_.name -> 1).foldMap(Map(_))
+  def songCount() = songs.map(_ -> 1).foldMap(Map(_))
 
-  def artistCount() = songs.map(_.artist.name -> 1).foldMap(Map(_))
+  def artistCount() = songs.map(_.artist -> 1).foldMap(Map(_))
 
   def uniqueArtists() = songs.map(_.artist.name).toSet
 
@@ -123,6 +125,12 @@ object Album {
 
 object Artist {
   def apply(a: SimpleArtist): Artist = Artist(a.getId, a.getHref, a.getUri, a.getName)
+  def apply(a: SArtist): Artist = Artist(a.getId, a.getHref, a.getUri, a.getName)
+  def apply(a: ENArtist): Artist = {
+    val uri = a.getForeignID("spotify")
+    val id = uri.split(":").reverse.head
+    Artist(id, s"https://api.spotify.com/v1/artists/$id", uri, a.getName)
+  }
 }
 
 object UserInfo {

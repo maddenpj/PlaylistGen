@@ -22,7 +22,7 @@ class Recommender(val users: Set[User]) {
     similar.toList.sortWith(_._2 > _._2)
   }
 
-  def recommendCount(artists: List[Artist]) = {
+  def recommendCount(artists: List[Artist]): List[(Playlist, Double)] = {
     val inputV = toSV(indexUniques(artists))
     val universe = users.flatMap(_.playlists).filter(_.uniqueArtists.size > 4)
 
@@ -32,6 +32,22 @@ class Recommender(val users: Set[User]) {
     }
     similar.toList.sortWith(_._2 > _._2)
   }
+
+  def popularityThreshold(artists: List[Artist], rs: List[(Playlist, Double)], lower: Int = 10, upper: Int = 10) = {
+    val base = artists.map(a => medianPopularity(allSongsForArtist(a))).sum / artists.length
+    rs.filter { case (pl, score) =>
+      within(medianPopularity(pl.songs), base, lower, upper)
+    }
+  }
+
+  def within(x: Int, base: Int, lower: Int, upper: Int) = (x > base - lower && x < base + upper)
+
+  def allSongsForArtist(artist: Artist): List[Song] =
+    users.toList.flatMap(_.playlists)
+      .flatMap(_.songs)
+      .filter(_.artist == artist)
+
+  def medianPopularity(songs: List[Song]): Int = songs.map(_.popularity).sorted.drop(songs.length/2).head
 
   // Helpers
   def playlistSV(pl: Playlist) = toSV(indexUniques(pl.songs.map(_.artist).toSet.toList))

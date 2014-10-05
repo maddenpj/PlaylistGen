@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.0.6",
   "org.scalanlp" %% "breeze" % "0.8.1",
   "org.scalanlp" %% "breeze-natives" % "0.8.1",
+  "com.googlecode.jen-api" % "jen-api" % "4.x.p",
   // spotify-java lib dependencies
   "junit" % "junit" % "4.11",
   "com.google.protobuf" % "protobuf-java" % "2.5.0",
@@ -33,25 +34,28 @@ initialCommands in console :=
   import com.makers._
   import com.makers.util._
   import com.makers.model._
+  import com.makers.related._
   import com.wrapper.spotify.Api
   import scalaz._
   import Scalaz._
   import breeze.linalg._
   val patrickId = "124091297"
   val api = new SpotifyApi("276a56a316944e23a41d97b6b1895fdf", "cf8e711f318f4b2a96c53f37b5310e02")
-  val users = Loader.load("playlists-all.json")
+  val echoNest = new EchoNestApi("1Q1TTX2ZLWYWOBPYH")
+  val users = Loader.load("playlist-universe.json")
   val artists = users.flatMap(_.playlists).flatMap(_.songs).map(_.artist)
-  val sbtrkt = artists.find(_.name == "SBTRKT").get
-  val disclosure = artists.find(_.name == "Disclosure").get
-  val cleanBandit = artists.find(_.name == "Clean Bandit").get
-  val flume = artists.find(_.name == "Flume").get
+  def af(a: String) = artists.find(_.name == a).get
+  val sbtrkt = af("SBTRKT")
+  val disclosure = af("Disclosure")
+  val cleanBandit = af("Clean Bandit")
+  val flume = af("Flume")
   val input = List(sbtrkt, disclosure, cleanBandit, flume)
-  val rec = new Recommender(users)
-  val similar = rec.recommend(input)
-  val ruiRec = new RuiRecommender(users)
+  //val rec = new Recommender(users)
+  //val similar = rec.recommend(input)
+  //val ruiRec = new RuiRecommender(users)
   """
 
-unmanagedJars in Compile ++= (file("/Users/rui.nakata/private/PlaylistGen/project/lib/") * "*.jar").classpath
+unmanagedJars in Compile ++= (file("/Users/patrick/src/patrick/playlistgen/project/lib/") * "*.jar").classpath
 
 assemblySettings
 
